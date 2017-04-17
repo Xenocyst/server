@@ -6,12 +6,12 @@ EndScriptData */
 #include "scriptPCH.h"
 #include "temple_of_ahnqiraj.h"
 
-#define SAY_AGGRO_1                 -1531000
-#define SAY_AGGRO_2                 -1531001
-#define SAY_AGGRO_3                 -1531002
-#define SAY_SLAY_1                  -1531003
-#define SAY_SLAY_2                  -1531004
-#define SAY_SLAY_3                  -1531005
+#define SAY_AGGRO_0                 -1531000
+#define SAY_AGGRO_1                 -1531001
+#define SAY_AGGRO_2                 -1531002
+#define SAY_SLAY_0                  -1531003
+#define SAY_SLAY_1                  -1531004
+#define SAY_SLAY_2                  -1531005
 #define SAY_SPLIT                   -1531006
 #define SAY_DEATH                   -1531007
 
@@ -25,9 +25,9 @@ EndScriptData */
 #define SPELL_TF_IMMUNITY           26526
 #define SPELL_TF_CANCEL             26589
 
-#define SPELL_BLINK_1               4801
-#define SPELL_BLINK_2               8195
-#define SPELL_BLINK_3               20449
+#define SPELL_BLINK_0               4801
+#define SPELL_BLINK_1               8195
+#define SPELL_BLINK_2               20449
 
 #define SPELL_SUMMON_IMAGES         747
 
@@ -85,9 +85,9 @@ struct boss_skeramAI : public ScriptedAI
     {
         switch (urand(0,8))
         {
-            case 0: DoScriptText(SAY_SLAY_1, m_creature); break;
-            case 1: DoScriptText(SAY_SLAY_2, m_creature); break;
-            case 2: DoScriptText(SAY_SLAY_3, m_creature); break;
+            case 0: DoScriptText(SAY_SLAY_0, m_creature); break;
+            case 1: DoScriptText(SAY_SLAY_1, m_creature); break;
+            case 2: DoScriptText(SAY_SLAY_2, m_creature); break;
         }
     }
 
@@ -114,9 +114,9 @@ struct boss_skeramAI : public ScriptedAI
 
         switch (urand(0,2))
         {
-            case 0: DoScriptText(SAY_AGGRO_1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO_2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
+            case 0: DoScriptText(SAY_AGGRO_0, m_creature); break;
+            case 1: DoScriptText(SAY_AGGRO_1, m_creature); break;
+            case 2: DoScriptText(SAY_AGGRO_2, m_creature); break;
         }
 
         if (m_pInstance)
@@ -176,12 +176,11 @@ struct boss_skeramAI : public ScriptedAI
                     // Cancel buffs on previous victim
                     CancelFulfillment();
 
-                    m_creature->CastSpell(MCTarget, SPELL_TRUE_FULFILLMENT, true);
                     m_creature->CastSpell(MCTarget, SPELL_TF_HASTE, true);
                     m_creature->CastSpell(MCTarget, SPELL_TF_MOD_HEAL, true);
                     m_creature->CastSpell(MCTarget, SPELL_TF_IMMUNITY, true);
 
-                    FullFillment_Timer = urand(20000, 25000);
+                    FullFillment_Timer = urand(20500, 25000);
                     ControlledPlayerGUID = MCTarget->GetObjectGuid();
                 }
             }
@@ -275,9 +274,9 @@ struct boss_skeramAI : public ScriptedAI
         // Blink to one of the three platforms
         switch (position)
         {
-            case 0: caster->CastSpell(caster, SPELL_BLINK_1, true); break;
-            case 1: caster->CastSpell(caster, SPELL_BLINK_2, true); break;
-            case 2: caster->CastSpell(caster, SPELL_BLINK_3, true); break;
+            case 0: caster->CastSpell(caster, SPELL_BLINK_0, true); break;
+            case 1: caster->CastSpell(caster, SPELL_BLINK_1, true); break;
+            case 2: caster->CastSpell(caster, SPELL_BLINK_2, true); break;
         }
 
         DoResetThreat();
