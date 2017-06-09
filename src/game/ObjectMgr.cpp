@@ -1904,6 +1904,7 @@ void ObjectMgr::LoadItemPrototypes()
 {
     SQLItemLoader loader;
     loader.Load(sItemStorage);
+    mQuestStartingItems.clear();
     sLog.outString(">> Loaded %u item prototypes", sItemStorage.GetRecordCount());
     sLog.outString();
 
@@ -2162,6 +2163,16 @@ void ObjectMgr::LoadItemPrototypes()
                     const_cast<ItemPrototype*>(proto)->ExtraFlags &= ~ITEM_EXTRA_REAL_TIME_DURATION;
                 }
             }
+        }
+
+
+        if (proto->StartQuest > 0)
+        // Item starts a quest, insert it into the quest->startItem map
+        {
+            if (mQuestStartingItems.find(proto->StartQuest) == mQuestStartingItems.end())
+                mQuestStartingItems.insert( std::pair<uint32, uint32>(proto->StartQuest, proto->ItemId) );
+            else
+                sLog.outErrorDb("Item #%u also starts quest #%u.", i, proto->StartQuest);
         }
     }
 
@@ -3319,7 +3330,7 @@ void ObjectMgr::LoadQuests()
 
         // additional quest integrity checks (GO, creature_template and item_template must be loaded already)
 
-        if (qinfo->GetQuestMethod() >= 3)
+        if (qinfo->GetQuestMethod() >= QUEST_METHOD_LIMIT)
             sLog.outErrorDb("Quest %u has `Method` = %u, expected values are 0, 1 or 2.", qinfo->GetQuestId(), qinfo->GetQuestMethod());
 
         if (qinfo->m_SpecialFlags > QUEST_SPECIAL_FLAG_DB_ALLOWED)
@@ -3875,6 +3886,16 @@ void ObjectMgr::LoadQuests()
 
     sLog.outString();
     sLog.outString(">> Loaded %lu quests definitions", (unsigned long)mQuestTemplates.size());
+}
+
+uint32 ObjectMgr::GetQuestStartingItemID(uint32 quest_id) const
+{
+    auto questItemPair = mQuestStartingItems.find(quest_id);
+
+    if (questItemPair != mQuestStartingItems.end())
+        return questItemPair->second;
+
+    return 0;
 }
 
 void ObjectMgr::LoadQuestLocales()
@@ -6877,7 +6898,7 @@ void ObjectMgr::LoadGameObjectForQuests()
     sLog.outString(">> Loaded %u GameObjects for quests", count);
 }
 
-bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min_value, int32 max_value)
+bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min_value, int32 max_value, bool extra_content)
 {
     int32 start_value = min_value;
     int32 end_value   = max_value;
@@ -6913,7 +6934,7 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
             ++itr;
     }
 
-    QueryResult *result = db.PQuery("SELECT entry,content_default,content_loc1,content_loc2,content_loc3,content_loc4,content_loc5,content_loc6,content_loc7,content_loc8 FROM %s", table);
+    QueryResult *result = db.PQuery("SELECT entry,content_default,content_loc1,content_loc2,content_loc3,content_loc4,content_loc5,content_loc6,content_loc7,content_loc8 %s FROM %s", extra_content ? ",sound,type,language,emote" : "", table);
 
     if (!result)
     {
@@ -6979,6 +7000,40 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
 
                     data.Content[idx + 1] = str;
                 }
+            }
+        }
+
+
+        // Load additional string content if necessary
+        if (extra_content)
+        {
+            data.SoundId     = fields[10].GetUInt32();
+            data.Type        = fields[11].GetUInt32();
+            data.LanguageId  = Language(fields[12].GetUInt32());
+            data.Emote       = fields[13].GetUInt32();
+
+            if (data.SoundId && !sSoundEntriesStore.LookupEntry(data.SoundId))
+            {
+                sLog.outErrorDb("Entry %i in table `%s` has soundId %u but sound does not exist.", entry, table, data.SoundId);
+                data.SoundId = 0;
+            }
+
+            if (!GetLanguageDescByID(data.LanguageId))
+            {
+                sLog.outErrorDb("Entry %i in table `%s` using Language %u but Language does not exist.", entry, table, uint32(data.LanguageId));
+                data.LanguageId = LANG_UNIVERSAL;
+            }
+
+            if (data.Type > CHAT_TYPE_ZONE_YELL)
+            {
+                sLog.outErrorDb("Entry %i in table `%s` has Type %u but this Chat Type does not exist.", entry, table, data.Type);
+                data.Type = CHAT_TYPE_SAY;
+            }
+
+            if (data.Emote && !sEmotesStore.LookupEntry(data.Emote))
+            {
+                sLog.outErrorDb("Entry %i in table `%s` has Emote %u but emote does not exist.", entry, table, data.Emote);
+                data.Emote = EMOTE_ONESHOT_NONE;
             }
         }
     }
@@ -8006,7 +8061,7 @@ void ObjectMgr::RemoveGroup(Group* group)
 }
 
 // Functions for scripting access
-bool LoadMangosStrings(DatabaseType& db, char const* table, int32 start_value, int32 end_value)
+bool LoadMangosStrings(DatabaseType& db, char const* table, int32 start_value, int32 end_value, bool extra_content)
 {
     // MAX_DB_SCRIPT_STRING_ID is max allowed negative value for scripts (scrpts can use only more deep negative values
     // start/end reversed for negative values
@@ -8016,7 +8071,7 @@ bool LoadMangosStrings(DatabaseType& db, char const* table, int32 start_value, i
         return false;
     }
 
-    return sObjectMgr.LoadMangosStrings(db, table, start_value, end_value);
+    return sObjectMgr.LoadMangosStrings(db, table, start_value, end_value, extra_content);
 }
 
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry)

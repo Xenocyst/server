@@ -191,6 +191,8 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleSpamerList(char* args);
         bool HandleWhisperRestrictionCommand(char* args);
 
+        bool HandleGoldRemoval(char* args);
+
         // Packet dump
         bool HandleReplayPlayCommand(char *);
         bool HandleReplayRecordCommand(char *);
@@ -393,6 +395,7 @@ class MANGOS_DLL_SPEC ChatHandler
 
         bool HandleDebugPlayCinematicCommand(char* args);
         bool HandleDebugPlaySoundCommand(char* args);
+        bool HandleDebugPlayMusicCommand(char* args);
 
         bool HandleDebugSendBuyErrorCommand(char* args);
         bool HandleDebugSendChannelNotifyCommand(char* args);
@@ -404,6 +407,13 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleDebugSendQuestInvalidMsgCommand(char* args);
         bool HandleDebugSendSellErrorCommand(char* args);
         bool HandleDebugSendSpellFailCommand(char* args);
+
+        /*
+        Send the visual of the next channeled spell after args, suggested macro :
+        /run if not f then f=ChatFrame_OnEvent ChatFrame_OnEvent=function(e)f(e)if p==0 and e=='CHAT_MSG_SYSTEM'then n=gsub(arg1,'%D*(%d*)%s.*','%1')end end end n=n or 0 SendChatMessage('.debug send chanvisualnext '..(p==1 and n or -1))p=p==1 and 0 or 1
+        */
+        bool HandleDebugSendNextChannelSpellVisualCommand(char* args);
+        bool HandleSendSpellChannelVisualCommand(char* args);
 
         bool HandleEventListCommand(char* args);
         bool HandleEventStartCommand(char* args);
@@ -524,6 +534,35 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleModifyHonorCommand(char* args);
         bool HandleModifyRepCommand(char* args);
         bool HandleModifyGenderCommand(char* args);
+        bool HandleModifyStrengthCommand(char* args);
+        bool HandleModifyAgilityCommand(char* args);
+        bool HandleModifyStaminaCommand(char* args);
+        bool HandleModifyIntellectCommand(char* args);
+        bool HandleModifySpiritCommand(char* args);
+        bool HandleModifyArmorCommand(char* args);
+        bool HandleModifyHolyCommand(char* args);
+        bool HandleModifyFireCommand(char* args);
+        bool HandleModifyNatureCommand(char* args);
+        bool HandleModifyFrostCommand(char* args);
+        bool HandleModifyShadowCommand(char* args);
+        bool HandleModifyArcaneCommand(char* args);
+        bool HandleModifyMeleeApCommand(char* args);
+        bool HandleModifyRangedApCommand(char* args);
+        bool HandleModifySpellPowerCommand(char* args);
+        bool HandleModifyMeleeCritCommand(char* args);
+        bool HandleModifyRangedCritCommand(char* args);
+        bool HandleModifySpellCritCommand(char* args);
+        bool HandleModifyMainSpeedCommand(char* args);
+        bool HandleModifyOffSpeedCommand(char* args);
+        bool HandleModifyRangedSpeedCommand(char* args);
+        bool HandleModifyCastSpeedCommand(char* args);
+        bool HandleModifyBlockCommand(char* args);
+        bool HandleModifyDodgeCommand(char* args);
+        bool HandleModifyParryCommand(char* args);
+
+        bool HandleModifyCrCommand(char *args);
+        bool HandleModifyBrCommand(char *args);
+
 
         //-----------------------Npc Commands-----------------------
         bool HandleNpcAddCommand(char* args);
@@ -590,6 +629,7 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleReloadAllLocalesCommand(char* args);
 
         bool HandleReloadConfigCommand(char* args);
+
 
         bool HandleReloadAreaTriggerTavernCommand(char* args);
         bool HandleReloadAreaTriggerTeleportCommand(char* args);
